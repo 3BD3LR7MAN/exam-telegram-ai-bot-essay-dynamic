@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-18 — Student experience and repository safeguards
+
+- Normalized `/start`, `/help`, `/cancel`, and `/command@bot` routing with explicit handling for unsupported message types.
+- Added friendly help, cancel guidance, and text-only reminders for Telegram students.
+- Removed Markdown parsing from question messages to prevent formatting injection and parse failures.
+- Added `scripts/validate_repo.py`, contributor guidance, and GitHub Actions validation for workflow integrity and common secrets.
+
 ## 2026-11-18 — GitHub-ready documentation package
 
 - Documented import, credentials, workbook schemas, student flow, grading, concurrency, testing, rollback, and troubleshooting.

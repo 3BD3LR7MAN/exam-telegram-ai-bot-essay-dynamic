@@ -71,6 +71,15 @@ The grading prompt assigns 0–10 points per question, so `max_score` is `number
 
 Sending `/start` again initializes that student's state again. Explain this restart behavior before giving students access; it can replace the in-progress attempt for that student.
 
+### Student commands and message types
+
+- `/start` begins or restarts an attempt. `/start@your_bot` also works when Telegram includes the bot mention.
+- `/help` shows the short Arabic student instructions.
+- `/cancel` does not delete state; it explains how to restart safely. This avoids an accidental destructive action.
+- Unknown slash commands show the help message and are not stored as exam answers.
+- Only text messages are accepted as answers. Photos, stickers, voice notes, and other unsupported updates receive a reminder instead of becoming blank answers.
+- Questions are sent as plain text without Markdown parsing, so punctuation and formatting in the question cannot cause Telegram parse errors.
+
 ## 6. Multi-student use and concurrency
 
 The workflow separates different students by `message.from.id` and uses that value as `user_id` for state reads, upserts, and updates. There is no shared AI memory node. Separate private chats can therefore run concurrently without intentionally sharing a student's answer state.

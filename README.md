@@ -11,6 +11,8 @@ A Telegram bot workflow built with n8n, Google Sheets, and Google Gemini. It del
 - [`CHANGELOG.md`](CHANGELOG.md): changes represented by this repository version.
 - [`workflow/ExamTelegramAIBot-EssayDynamic.template.json`](workflow/ExamTelegramAIBot-EssayDynamic.template.json): sanitized n8n import template.
 - [`docs/STUDENT-GUIDE.ar.md`](docs/STUDENT-GUIDE.ar.md): short Arabic instructions for students.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): safe contribution and local validation checklist.
+- [`scripts/validate_repo.py`](scripts/validate_repo.py): the same safety/integrity check run in GitHub Actions.
 
 ## Quick start
 
@@ -23,9 +25,22 @@ A Telegram bot workflow built with n8n, Google Sheets, and Google Gemini. It del
 ## Important behavior
 
 - Student state is keyed by Telegram `message.from.id` (`user_id`). The workflow has no shared AI memory node.
+- Student commands are normalized, so `/start`, `/start@your_bot`, and surrounding whitespace work consistently. `/help` shows the exam instructions; `/cancel` explains the restart behavior without deleting state. Unknown slash commands receive the help message instead of being saved as answers.
+- Stickers, photos, voice notes, and other non-text updates receive a friendly text-only reminder instead of being saved as blank answers. Question messages use plain text rather than Markdown, so student content cannot break Telegram formatting.
 - Use separate private chats. Group chats are not supported: bot responses use the incoming `chat.id`, so participants in a shared group can see one another's questions and answers.
 - Gemini grading is configured for up to **3 attempts total**, with **5 seconds** between attempts. This can help with transient `Service unavailable` responses, but does not guarantee recovery from a persistent outage.
 - Google Sheets is suitable for a small or moderate test deployment, but it is not a transactional database. For heavy traffic, use a database and queue with per-user serialization/locking.
+
+## Before you publish or import
+
+Run the repository checks locally:
+
+```bash
+python3 scripts/validate_repo.py
+python3 -m json.tool workflow/ExamTelegramAIBot-EssayDynamic.template.json >/dev/null
+```
+
+The GitHub Actions workflow runs the same validation on every push and pull request. After importing, assign credentials and reselect every spreadsheet and sheet tab in n8n; this repository intentionally contains placeholders and is not production-ready by itself.
 
 ## License
 

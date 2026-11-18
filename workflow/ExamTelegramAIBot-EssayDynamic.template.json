@@ -4,7 +4,7 @@
       "main": [
         [
           {
-            "node": "Switch",
+            "node": "Normalize Incoming Message",
             "type": "main",
             "index": 0
           }
@@ -22,7 +22,35 @@
         ],
         [
           {
+            "node": "Send Help",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Cancel Guidance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Get Student State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Unsupported Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Help",
             "type": "main",
             "index": 0
           }
@@ -258,6 +286,17 @@
           }
         ]
       ]
+    },
+    "Normalize Incoming Message": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "nodes": [
@@ -280,19 +319,30 @@
     {
       "parameters": {
         "dataType": "string",
-        "value1": "={{ $json.message.text }}",
+        "value1": "={{ $json.command }}",
         "rules": {
           "rules": [
             {
               "value2": "/start"
             },
             {
-              "operation": "notEqual",
-              "value2": "/start",
-              "output": 1
+              "value2": "/help"
+            },
+            {
+              "value2": "/cancel"
+            },
+            {
+              "value2": "__answer__"
+            },
+            {
+              "value2": "__unsupported__"
+            },
+            {
+              "value2": "__unknown_command__"
             }
           ]
-        }
+        },
+        "options": {}
       },
       "id": "3d3be2ad-6e63-4333-8060-153990adfcb3",
       "name": "Switch",
@@ -481,10 +531,8 @@
     {
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
-        "text": "=أرسل إجابتك الآن...\n{{ $json.question }}",
-        "additionalFields": {
-          "parse_mode": "Markdown"
-        }
+        "text": "=السؤال 1 من {{ $('Prepare Initial State').item.json.total_questions }}\n\n{{ $json.question }}\n\nاكتب إجابتك وأرسلها برسالة واحدة.",
+        "additionalFields": {}
       },
       "id": "f2c22c69-b421-4d6f-ac98-b30d4f206628",
       "name": "Send Question 1",
@@ -713,10 +761,8 @@
     {
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
-        "text": "=أرسل إجابتك الآن...\n{{ $json.question }}",
-        "additionalFields": {
-          "parse_mode": "Markdown"
-        }
+        "text": "=السؤال {{ $('Update State Code').item.json.current_q + 1 }} من {{ $('Update State Code').item.json.total_questions }}\n\n{{ $json.question }}\n\nاكتب إجابتك وأرسلها برسالة واحدة.",
+        "additionalFields": {}
       },
       "id": "b252f63f-b4cb-4afa-ace1-a742608cb9dd",
       "name": "Send Next Question",
@@ -969,7 +1015,7 @@
     },
     {
       "parameters": {
-        "content": "## Setup / Instructions\n1. Connect your Telegram bot and Google Sheets OAuth2 credentials (DeepSeek credential is also required).\n2. Questions sheet: id, question, model_answer. Question IDs must be consecutive integers starting at 1.\n3. Student State sheet (gid=0 in the configured state spreadsheet): user_id, current_q, answers, started_at, total_questions, max_score. Keep user_id unique.\n4. Results sheet: user_id, total_score, percentage, feedback, evaluated_at, total_questions, max_score, name, username, answers_json. Add a column with the exact header answers_json to Results before activating.\n5. Verify the two configured spreadsheet IDs and sheet tabs match your account. The workflow upserts only the current user's state; it does not clear other students' rows.\n6. For heavy public traffic, use a transactional database and a queue; Google Sheets has API quotas and is not an atomic per-user lock.",
+        "content": "## Setup / Instructions\n1. Connect your Telegram bot and Google Sheets OAuth2 credentials (DeepSeek credential is also required).\n2. Questions sheet: id, question, model_answer. Question IDs must be consecutive integers starting at 1.\n3. Student State sheet (gid=0 in the configured state spreadsheet): user_id, current_q, answers, started_at, total_questions, max_score. Keep user_id unique.\n4. Results sheet: user_id, total_score, percentage, feedback, evaluated_at, total_questions, max_score, name, username, answers_json. Add a column with the exact header answers_json to Results before activating.\n5. Verify the two configured spreadsheet IDs and sheet tabs match your account. The workflow upserts only the current user's state; it does not clear other students' rows.\n6. For heavy public traffic, use a transactional database and a queue; Google Sheets has API quotas and is not an atomic per-user lock.\\n\\nUX safeguards: commands accept /command@bot and surrounding whitespace; unsupported media is ignored; Telegram output uses plain text to avoid Markdown injection/parse errors.",
         "height": 368,
         "width": 560
       },
@@ -1080,6 +1126,65 @@
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $json.message || {};\nconst text = typeof message.text === 'string' ? message.text : '';\nconst trimmed = text.trim();\nconst firstToken = trimmed.split(/\\s+/, 1)[0].toLowerCase();\nconst command = firstToken.startsWith('/') ? firstToken.split('@', 1)[0] : '';\nconst knownCommands = new Set(['/start', '/help', '/cancel']);\nconst route = !text ? '__unsupported__' : (command ? (knownCommands.has(command) ? command : '__unknown_command__') : '__answer__');\nreturn { json: { ...$json, command: route, normalized_text: text } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "normalize-incoming-message",
+      "name": "Normalize Incoming Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -760,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "text": "تعليمات الامتحان\n\n/start — بدء محاولة جديدة\n/help — عرض هذه التعليمات\n/cancel — إلغاء الرسالة الحالية\n\nأرسل إجابة نصية واحدة لكل سؤال، وانتظر السؤال التالي قبل الإرسال مرة أخرى. استخدم محادثة خاصة مع البوت.",
+        "additionalFields": {}
+      },
+      "id": "send-help",
+      "name": "Send Help",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "text": "تم تجاهل الرسالة. أثناء الامتحان أرسل إجابة نصية فقط. أرسل /help لعرض التعليمات أو /start لبدء محاولة جديدة.",
+        "additionalFields": {}
+      },
+      "id": "send-unsupported",
+      "name": "Send Unsupported Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "text": "لا توجد عملية لإلغائها. لإعادة بدء المحاولة استخدم /start؛ انتبه إلى أن ذلك يستبدل التقدم الحالي.",
+        "additionalFields": {}
+      },
+      "id": "send-cancel",
+      "name": "Send Cancel Guidance",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        -120
+      ]
     }
   ],
   "name": "Exam Telegram AI Bot - Essay Dynamic",
