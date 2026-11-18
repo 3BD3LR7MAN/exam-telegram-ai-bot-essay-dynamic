@@ -1,0 +1,25 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*credentials*.json
+*service-account*.json
+*token*.txt
+
+# Raw n8n exports and execution data
+workflow/raw/
+workflow/live-export*.json
+execution-*.json
+n8n-logs/
+
+# Student data and test artifacts
+student-data/
+results.csv
+state.csv
+answers.csv
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
