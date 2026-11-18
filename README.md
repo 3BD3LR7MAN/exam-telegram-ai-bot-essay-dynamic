@@ -4,6 +4,14 @@ A Telegram bot workflow built with n8n, Google Sheets, and Google Gemini. It del
 
 > **This repository contains a sanitized workflow template and setup instructions, not a live credential bundle.** Credentials, the production spreadsheet URL/ID, Telegram bot token, Gemini key, student records, and execution data are intentionally excluded. The workflow is not ready to activate until you configure your own credentials and reselect the spreadsheet and sheet tabs in n8n.
 
+## Workflow overview
+
+![Sanitized n8n workflow overview](assets/workflow-overview.png)
+
+This screenshot shows the workflow architecture from a representative run: Telegram intake, per-student state, question delivery, AI grading, and Google Sheets results. It is a visual overview only; the importable JSON template is the source of truth for current node names and configuration.
+
+> **Screenshot note:** the embedded setup note reflects an earlier draft and mentions DeepSeek. The current sanitized template and documentation use Google Gemini.
+
 ## Repository contents
 
 - [`INSTRUCTIONS.md`](INSTRUCTIONS.md): installation, configuration, data schema, student flow, testing, operations, and recovery instructions.
