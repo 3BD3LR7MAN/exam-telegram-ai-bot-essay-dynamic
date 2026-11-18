@@ -10,7 +10,6 @@ A Telegram bot workflow built with n8n, Google Sheets, and Google Gemini. It del
 
 This screenshot shows the workflow architecture from a representative run: Telegram intake, per-student state, question delivery, AI grading, and Google Sheets results. It is a visual overview only; the importable JSON template is the source of truth for current node names and configuration.
 
-> **Screenshot note:** the embedded setup note reflects an earlier draft and mentions DeepSeek. The current sanitized template and documentation use Google Gemini.
 
 ## Repository contents
 
@@ -49,6 +48,14 @@ python3 -m json.tool workflow/ExamTelegramAIBot-EssayDynamic.template.json >/dev
 ```
 
 The GitHub Actions workflow runs the same validation on every push and pull request. After importing, assign credentials and reselect every spreadsheet and sheet tab in n8n; this repository intentionally contains placeholders and is not production-ready by itself.
+
+## Portfolio / CV description
+
+**Telegram AI Essay Exam Bot — n8n, Google Gemini, Telegram Bot API, Google Sheets**
+
+Designed and documented a reusable n8n workflow that delivers dynamic essay exams through Telegram, maintains isolated per-student state, evaluates open-ended answers with Google Gemini, validates scores, and stores structured results in Google Sheets. Added normalized command routing, unsupported-message handling, retry-aware grading, security documentation, and automated repository validation.
+
+> This repository is presented as a sanitized portfolio template. Credentials, production spreadsheet references, student records, and execution data are intentionally excluded.
 
 ## License
 
